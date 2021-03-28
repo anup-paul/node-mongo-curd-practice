@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1 style="text-align: center;">Welcome Dude!</h1>
+
+    <form action="/addStudent" method="post" style="width: 40%; text-align: center; margin-left: 30%;">
+        <input type="text" name="name" placeholder="name" class="form-control">
+        <input type="text" name="profession" placeholder="Enter your profession" class="form-control">
+        <input type="text" name="phoneNumber" placeholder="Enter your phone number" class="form-control">
+        <input type="text" name="address" placeholder="Enter your address" class="form-control">
+        <br>
+        <button class="btn btn-primary">Submit</button>
+    </form>
+
+    <div id="students" style="width: 60%; margin-left: 25%;"></div>
+    <div id="updateStudent" style="width: 60%; margin-left: 25%;"> </div>
+
+
+    <script>
+        function loadAllStudent() {
+            fetch('http://localhost:4000/students')
+                .then(res => res.json())
+                .then(data => {
+                    const studentContainer = document.getElementById('students');
+                    studentContainer.innerHTML = '';
+                    data.forEach(student => {
+                        const pra = document.createElement('p');
+                        pra.innerHTML = `
+                Name: ${student.name} Profession: ${student.profession} address :${student.address}
+                <button onclick="loadStudent('${student._id}')" > Update </button>
+                <button onclick="removeStudent( event, '${student._id}')"> Remove </button>
+                
+                `
+                        studentContainer.appendChild(pra);
+                    })
+                })
+        }
+
+        loadAllStudent()
+
+
+
+        function loadStudent(id) {
+            fetch(`/student/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    const updateStudent = document.getElementById('updateStudent');
+                    updateStudent.innerHTML = `
+                Profession: <input type="text", value="${data.profession}" id="profession" >
+                Address: <input type="text", value="${data.address}" id="address" >
+                <button onclick = "updateStudentProfile('${data._id}')" > Submit </button>
+                `
+                })
+        }
+
+
+        function updateStudentProfile(id) {
+            const profession = document.getElementById('profession').value;
+            const address = document.getElementById('address').value;
+            const student = { id, profession, address };
+            fetch(`/update/${id}`,
+                {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(student)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    loadAllStudent();
+                    document.getElementById('updateStudent').innerHTML = "";
+                })
+        }
+
+
+        function removeStudent(event, id) {
+            // console.log('clicked')
+            fetch(`/delete/${id}`,
+                {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // console.log("deleted successfully");
+                    if (data) {
+                        event.target.parentNode.style.display = 'none';
+                    }
+                })
+        }
+    </script>
+
+</body>
+
+</html>
